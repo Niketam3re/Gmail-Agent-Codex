@@ -78,6 +78,7 @@ L'application est disponible sur [http://localhost:3000](http://localhost:3000).
 5. Déployez. Railway installera les dépendances et lancera `npm start`. L'application écoute
    automatiquement sur la variable d'environnement `PORT` fournie par Railway et sur `0.0.0.0`,
    ce qui lui permet de répondre correctement aux vérifications d'état de la plateforme.
+5. Déployez. Railway installera les dépendances et lancera `npm start`.
 
 ## Personnalisation
 

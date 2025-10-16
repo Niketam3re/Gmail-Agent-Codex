@@ -14,6 +14,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 const host = process.env.HOST || '0.0.0.0';
+const port = process.env.PORT || 3000;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
@@ -169,4 +170,6 @@ app.use((req, res) => {
 
 app.listen(port, host, () => {
   console.log(`Serveur démarré sur http://${host}:${port}`);
+app.listen(port, () => {
+  console.log(`Serveur démarré sur http://localhost:${port}`);
 });
