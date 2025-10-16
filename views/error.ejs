@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="card">
+        <h1><%= title %></h1>
+        <p><%= message %></p>
+        <% if (typeof error === 'string' && error.length > 0) { %>
+        <pre class="hint"><%= error %></pre>
+        <% } %>
+        <a class="primary" href="/">Revenir à l'accueil</a>
+      </section>
+    </main>
+  </body>
+</html>

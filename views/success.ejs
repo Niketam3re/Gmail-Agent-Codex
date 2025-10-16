@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="card">
+        <h1><%= title %></h1>
+        <p>
+          Merci ! Nous avons bien reçu l'autorisation pour l'adresse <strong><%= userEmail %></strong>.
+        </p>
+        <% if (companyName) { %>
+        <p>
+          Nous finalisons la configuration pour <strong><%= companyName %></strong> et vous reviendrons par email.
+        </p>
+        <% } %>
+        <% if (!saved) { %>
+        <p class="hint warning">
+          ⚠️ Les identifiants Supabase ne sont pas configurés. Aucune donnée n'a été enregistrée. Ajoutez vos
+          variables d'environnement pour activer l'enregistrement automatique.
+        </p>
+        <% } else { %>
+        <p class="hint">
+          ✅ Les informations ont été stockées dans Supabase. Vous pouvez suivre l'état de l'onboarding depuis
+          votre dashboard.
+        </p>
+        <% } %>
+        <a class="primary" href="/">Retour à l'accueil</a>
+      </section>
+    </main>
+  </body>
+</html>
