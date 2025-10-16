@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connexion à l'agent Gmail</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="container">
+        <h1>Automatisez votre support client avec Gmail Agent</h1>
+        <p>
+          Centralisez les conversations emails de vos clients et laissez notre agent agir
+          intelligemment sur votre boîte Gmail.
+        </p>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <h2>Inscription</h2>
+        <p>
+          Remplissez les informations ci-dessous pour que nous puissions configurer votre accès.
+          Vous serez ensuite redirigé vers Google pour autoriser l'agent.
+        </p>
+        <form method="POST" action="/register" class="form">
+          <label for="companyName">Nom de votre entreprise</label>
+          <input type="text" id="companyName" name="companyName" placeholder="Ex: Studio Lumière" required />
+
+          <label for="contactEmail">Email de contact</label>
+          <input type="email" id="contactEmail" name="contactEmail" placeholder="vous@entreprise.com" required />
+
+          <button type="submit" class="primary">Continuer avec Google</button>
+        </form>
+        <% if (!googleClientConfigured) { %>
+        <p class="hint warning">
+          ⚠️ Les identifiants OAuth Google ne sont pas configurés. Ajoutez vos variables d'environnement
+          <code>GOOGLE_CLIENT_ID</code> et <code>GOOGLE_CLIENT_SECRET</code> pour activer le parcours complet.
+        </p>
+        <% } %>
+        <% if (!hasSupabase) { %>
+        <p class="hint">
+          ℹ️ Supabase n'est pas configuré. Les données ne seront pas encore enregistrées tant que
+          <code>SUPABASE_URL</code> et <code>SUPABASE_SERVICE_ROLE_KEY</code> ne sont pas fournis.
+        </p>
+        <% } %>
+      </section>
+
+      <section class="features">
+        <article>
+          <h3>Accès sécurisé</h3>
+          <p>
+            Nous utilisons OAuth 2.0 pour demander les autorisations minimales nécessaires et ne stockons
+            jamais votre mot de passe Gmail.
+          </p>
+        </article>
+        <article>
+          <h3>Suivi transparent</h3>
+          <p>
+            Consultez à tout moment les actions réalisées par l'agent et gardez la main sur votre boîte email.
+          </p>
+        </article>
+        <article>
+          <h3>Support prioritaire</h3>
+          <p>
+            Notre équipe vous accompagne lors de l'onboarding et répond à vos questions en moins de 24h.
+          </p>
+        </article>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-content">
+        <span>© <%= new Date().getFullYear() %> Gmail Agent. Tous droits réservés.</span>
+        <a href="/mentions-legales">Mentions légales</a>
+      </div>
+    </footer>
+  </body>
+</html>
