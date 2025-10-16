@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { google } from 'googleapis';
+import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 const host = process.env.HOST || '0.0.0.0';
+const port = process.env.PORT || 3000;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
@@ -63,6 +65,10 @@ async function saveConnectionToSupabase(payload) {
     return { saved: false, error: error.message };
   }
 }
+const supabaseClient =
+  supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
@@ -79,7 +85,7 @@ const gmailScopes = [
 
 app.get('/', (req, res) => {
   res.render('index', {
-    hasSupabase: supabaseConfigured,
+    hasSupabase: Boolean(supabaseClient),
     googleClientConfigured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
   });
 });
@@ -148,8 +154,8 @@ app.get('/auth/google/callback', async (req, res) => {
 
     let saved = false;
 
-    if (supabaseConfigured) {
-      const { saved: supabaseSaved } = await saveConnectionToSupabase({
+    if (supabaseClient) {
+      const { error } = await supabaseClient.from('gmail_agent_connections').insert({
         company_name: signupData.companyName,
         contact_email: signupData.contactEmail,
         google_user_id: userInfo.data.id,
@@ -159,7 +165,11 @@ app.get('/auth/google/callback', async (req, res) => {
         expiry_date: tokens.expiry_date
       });
 
-      saved = supabaseSaved;
+      if (error) {
+        console.error('Erreur Supabase:', error);
+      } else {
+        saved = true;
+      }
     }
 
     res.render('success', {
@@ -189,6 +199,6 @@ app.use((req, res) => {
   });
 });
 
-app.listen(port, host, () => {
-  console.log(`Serveur démarré sur http://${host}:${port}`);
+app.listen(port, () => {
+  console.log(`Serveur démarré sur http://localhost:${port}`);
 });
