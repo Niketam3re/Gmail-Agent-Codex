@@ -75,6 +75,9 @@ L'application est disponible sur [http://localhost:3000](http://localhost:3000).
 3. Ajoutez les variables d'environnement dans l'onglet « Variables ».
 4. Mettez à jour `GOOGLE_REDIRECT_URI` avec `https://<votre-service>.up.railway.app/auth/google/callback` et
    ajoutez cette URL dans la console Google Cloud.
+5. Déployez. Railway installera les dépendances et lancera `npm start`. L'application écoute
+   automatiquement sur la variable d'environnement `PORT` fournie par Railway et sur `0.0.0.0`,
+   ce qui lui permet de répondre correctement aux vérifications d'état de la plateforme.
 5. Déployez. Railway installera les dépendances et lancera `npm start`.
 
 ## Personnalisation
