@@ -8,7 +8,7 @@ déploiement sur Railway.
 
 - Page d'accueil en français avec formulaire d'inscription.
 - Redirection vers Google OAuth afin d'accorder l'accès Gmail à votre agent.
-- Récupération du profil Google et sauvegarde des tokens dans Supabase.
+- Récupération du profil Google et sauvegarde des tokens dans Supabase via l'API REST.
 - Pages de succès, d'erreur et mentions légales.
 
 ## Prérequis
@@ -75,7 +75,11 @@ L'application est disponible sur [http://localhost:3000](http://localhost:3000).
 3. Ajoutez les variables d'environnement dans l'onglet « Variables ».
 4. Mettez à jour `GOOGLE_REDIRECT_URI` avec `https://<votre-service>.up.railway.app/auth/google/callback` et
    ajoutez cette URL dans la console Google Cloud.
-5. Déployez. Railway installera les dépendances et lancera `npm start`.
+5. Déployez. Railway installera les dépendances et lancera `npm start`. L'application écoute
+   automatiquement sur la variable d'environnement `PORT` fournie par Railway et sur `0.0.0.0`,
+   ce qui lui permet de répondre correctement aux vérifications d'état de la plateforme. Aucune
+   bibliothèque Supabase supplémentaire n'est nécessaire : l'application communique directement
+   avec l'API REST de Supabase.
 
 ## Personnalisation
 

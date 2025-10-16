@@ -12,6 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const port = Number(process.env.PORT) || 3000;
+const host = process.env.HOST || '0.0.0.0';
 const port = process.env.PORT || 3000;
 
 app.set('view engine', 'ejs');
@@ -32,6 +34,37 @@ app.use(
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+const supabaseConfigured = Boolean(supabaseUrl && supabaseKey);
+
+async function saveConnectionToSupabase(payload) {
+  if (!supabaseConfigured) {
+    return { saved: false };
+  }
+
+  try {
+    const response = await fetch(`${supabaseUrl}/rest/v1/gmail_agent_connections`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Erreur Supabase REST:', response.status, text);
+      return { saved: false, error: text };
+    }
+
+    return { saved: true };
+  } catch (error) {
+    console.error('Exception lors de la sauvegarde Supabase:', error);
+    return { saved: false, error: error.message };
+  }
+}
 const supabaseClient =
   supabaseUrl && supabaseKey
     ? createClient(supabaseUrl, supabaseKey)
