@@ -1,5 +1,5 @@
+import crypto from 'crypto';
 import express from 'express';
-import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -18,26 +18,93 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 const host = process.env.HOST || '0.0.0.0';
+const stateSecret = process.env.SESSION_SECRET || 'change-this-secret';
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'change-this-secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 1000 * 60 * 60
-    }
-  })
-);
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabaseConfigured = Boolean(supabaseUrl && supabaseKey);
+
+function base64UrlEncode(value) {
+  return Buffer.from(value)
+    .toString('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+}
+
+function base64UrlDecode(value) {
+  const padding = (4 - (value.length % 4 || 4)) % 4;
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat(padding);
+  return Buffer.from(normalized, 'base64').toString('utf8');
+}
+
+function createStateToken(data) {
+  const payload = {
+    ...data,
+    t: Date.now()
+  };
+  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  const signature = crypto
+    .createHmac('sha256', stateSecret)
+    .update(encodedPayload)
+    .digest('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+
+  return `${encodedPayload}.${signature}`;
+}
+
+function verifyStateToken(token, maxAgeMs = 10 * 60 * 1000) {
+  if (!token) {
+    return null;
+  }
+
+  const parts = token.split('.');
+
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  const [encodedPayload, providedSignature] = parts;
+  const expectedSignature = crypto
+    .createHmac('sha256', stateSecret)
+    .update(encodedPayload)
+    .digest();
+
+  let signatureBuffer;
+
+  try {
+    signatureBuffer = Buffer.from(providedSignature.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+  } catch (error) {
+    return null;
+  }
+
+  if (
+    expectedSignature.length !== signatureBuffer.length ||
+    !crypto.timingSafeEqual(expectedSignature, signatureBuffer)
+  ) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(base64UrlDecode(encodedPayload));
+
+    if (!payload.t || Date.now() - payload.t > maxAgeMs) {
+      return null;
+    }
+
+    return payload;
+  } catch (error) {
+    return null;
+  }
+}
 
 async function saveConnectionToSupabase(payload) {
   if (!supabaseConfigured) {
@@ -105,10 +172,9 @@ app.post('/register', (req, res) => {
     });
   }
 
-  req.session.signupData = { companyName, contactEmail };
-  req.session.save(() => {
-    res.redirect('/auth/google');
-  });
+  const state = createStateToken({ companyName, contactEmail });
+
+  res.redirect(`/auth/google?state=${encodeURIComponent(state)}`);
 });
 
 app.get('/auth/google', (req, res) => {
@@ -121,10 +187,20 @@ app.get('/auth/google', (req, res) => {
     });
   }
 
+  const { state } = req.query;
+
+  if (!state) {
+    return res.status(400).render('error', {
+      title: 'Requête invalide',
+      message: 'Le paramètre de suivi nécessaire pour Google est manquant. Merci de soumettre à nouveau le formulaire.'
+    });
+  }
+
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: gmailScopes,
-    prompt: 'consent'
+    prompt: 'consent',
+    state
   });
 
   res.redirect(authUrl);
@@ -140,12 +216,21 @@ app.get('/auth/google/callback', async (req, res) => {
     });
   }
 
-  const { code } = req.query;
+  const { code, state } = req.query;
 
   if (!code) {
     return res.status(400).render('error', {
       title: 'Autorisation refusée',
       message: 'Google ne nous a pas retourné de code. Merci de réessayer.'
+    });
+  }
+
+  const signupData = verifyStateToken(state);
+
+  if (!signupData) {
+    return res.status(400).render('error', {
+      title: 'Lien expiré ou invalide',
+      message: "Le lien de connexion n'est plus valide. Merci de recommencer le processus d'inscription."
     });
   }
 
@@ -155,18 +240,6 @@ app.get('/auth/google/callback', async (req, res) => {
 
     const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
     const userInfo = await oauth2.userinfo.get();
-
-    const signupData = req.session.signupData;
-    req.session.signupData = null;
-
-    if (!signupData) {
-      return res.render('success', {
-        title: 'Accès accordé',
-        userEmail: userInfo.data.email,
-        companyName: null,
-        saved: false
-      });
-    }
 
     let saved = false;
 
@@ -214,3 +287,4 @@ app.use((req, res) => {
 app.listen(port, host, () => {
   console.log(`Serveur démarré sur http://${host}:${port}`);
 });
+

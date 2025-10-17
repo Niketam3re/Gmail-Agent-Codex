@@ -37,7 +37,7 @@ cp .env.example .env
 | `GOOGLE_REDIRECT_URI` | URL de callback autorisée (localhost en dev, domaine Railway en prod). |
 | `SUPABASE_URL` | URL de votre projet Supabase. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Clé service role Supabase (conservez-la secrète). |
-| `SESSION_SECRET` | Chaîne aléatoire utilisée pour sécuriser les sessions Express. |
+| `SESSION_SECRET` | Chaîne aléatoire utilisée pour signer le paramètre `state` lors du flux OAuth. |
 
 ### Table Supabase
 
