@@ -38,28 +38,10 @@ function base64UrlEncode(value) {
     .replace(/\//g, '_');
 }
 
-function base64UrlEncodeBuffer(buffer) {
-  return buffer
-    .toString('base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-}
-
 function base64UrlDecode(value) {
   const padding = (4 - (value.length % 4 || 4)) % 4;
   const normalized = value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat(padding);
   return Buffer.from(normalized, 'base64').toString('utf8');
-}
-
-function base64UrlDecodeToBuffer(value) {
-  const padding = (4 - (value.length % 4 || 4)) % 4;
-  const normalized = value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat(padding);
-  return Buffer.from(normalized, 'base64');
-}
-
-function signStatePayload(encodedPayload) {
-  return crypto.createHmac('sha256', stateSecret).update(encodedPayload).digest();
 }
 
 function createStateToken(data) {
@@ -68,7 +50,13 @@ function createStateToken(data) {
     t: Date.now()
   };
   const encodedPayload = base64UrlEncode(JSON.stringify(payload));
-  const signature = base64UrlEncodeBuffer(signStatePayload(encodedPayload));
+  const signature = crypto
+    .createHmac('sha256', stateSecret)
+    .update(encodedPayload)
+    .digest('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
 
   return `${encodedPayload}.${signature}`;
 }
@@ -85,12 +73,15 @@ function verifyStateToken(token, maxAgeMs = 10 * 60 * 1000) {
   }
 
   const [encodedPayload, providedSignature] = parts;
-  const expectedSignature = signStatePayload(encodedPayload);
+  const expectedSignature = crypto
+    .createHmac('sha256', stateSecret)
+    .update(encodedPayload)
+    .digest();
 
   let signatureBuffer;
 
   try {
-    signatureBuffer = base64UrlDecodeToBuffer(providedSignature);
+    signatureBuffer = Buffer.from(providedSignature.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
   } catch (error) {
     return null;
   }
