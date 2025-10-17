@@ -1,22 +1,27 @@
-{
-  "name": "gmail-agent-codex",
-  "version": "1.0.0",
-  "description": "Landing page and OAuth onboarding flow for Gmail agent service",
-  "main": "src/server.js",
-  "type": "module",
-  "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
-  },
-  "dependencies": {
-    "dotenv": "^16.4.5",
-    "ejs": "^3.1.10",
-    "express": "^4.19.2",
-    "express-session": "^1.17.3",
-    "googleapis": "^144.0.0",
-    "node-fetch": "^3.3.2"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.0"
-  }
-}
+diff --git a/package.json b/package.json
+index a6569932c6929ff2a9a781e44bcd982e95421598..ec008aaab19c6fd58c34cc175800bcb38d2fb08f 100644
+--- a/package.json
++++ b/package.json
+@@ -1,22 +1,21 @@
+ {
+   "name": "gmail-agent-codex",
+   "version": "1.0.0",
+   "description": "Landing page and OAuth onboarding flow for Gmail agent service",
+   "main": "src/server.js",
+   "type": "module",
+   "scripts": {
+     "dev": "nodemon src/server.js",
+     "start": "node src/server.js"
+   },
+   "dependencies": {
+     "dotenv": "^16.4.5",
+     "ejs": "^3.1.10",
+     "express": "^4.19.2",
+-    "express-session": "^1.17.3",
+     "googleapis": "^144.0.0",
+     "node-fetch": "^3.3.2"
+   },
+   "devDependencies": {
+     "nodemon": "^3.1.0"
+   }
+ }
